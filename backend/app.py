@@ -68,6 +68,7 @@ async def verify(request : Request):
             smtp.sendmail(email_sender, email_receiver, em.as_string())
     except Exception as e:
         print(e)
+    return {'otp' : otp}
 
 
 @app.post('/register')

@@ -3,6 +3,10 @@ from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 import uvicorn
+from email.message import EmailMessage
+import ssl
+import smtplib
+import requests
 import smtplib
 from email.message import EmailMessage
 from sendgrid import SendGridAPIClient
@@ -18,10 +22,15 @@ from fastapi.exceptions import HTTPException
 from starlette.responses import JSONResponse
 import os
 import pymongo
+from typing import List
 
+from fastapi import BackgroundTasks, FastAPI
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+from pydantic import BaseModel, EmailStr
+from starlette.responses import JSONResponse
 
-
-#conf = ConnectionConfig(MAIL_USERNAME="sripriyamaturi8",MAIL_FROM="sripriyamaturi8@gmail.com",MAIL_PASSWORD="917203sp",MAIL_PORT=587,MAIL_SERVER="smtp.gmail.com",MAIL_STARTTLS=True,MAIL_SSL_TLS=False)
+class EmailSchema(BaseModel):
+    email: List[EmailStr]
 
 app = FastAPI(title="Chaarminar", version="1.0.0")
 app.add_middleware(
@@ -32,38 +41,57 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.post('/verify')
 async def verify(request : Request):
-    otp=randint(0000,9999)
-    #req = request.body
     k = await request.json()
-    print(k)
-    message = Mail(from_email='udaymaturi51@gmail.com',to_emails= k['email'],subject='ApnaFood - Email verification',html_content='<strong>Your otp is - </strong><br>' + str(otp))
+    email_sender = "sripriyamaturi8@gmail.com"
+    email_password = "kawsuxixaxjxvtdb"
+    email_receiver = k['email']
+
+    subject = "Mithranjali ApnaFood - Email Verification"
+    otp=randint(0000,9999)
+    body = """
+    Your otp for email verification is - 
+    """ + otp
+
+    em = EmailMessage()
+    em['From'] = email_sender
+    em['To'] = email_receiver
+    em['Subject'] = subject 
+    em.set_content(body)
     try:
-        sg = SendGridAPIClient('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')
-        response = sg.send(message)
-        print(response.status_code)
-        print(response.body)
-        print(response.headers)
+        context = ssl.create_default_context()
+
+        with smtplib.SMTP_SSL('smtp.gmail.com',465, context = context) as smtp:
+            smtp.login(email_sender, email_password)
+            smtp.sendmail(email_sender, email_receiver, em.as_string())
     except Exception as e:
         print(e)
-    return {"otp" : otp}
+
 
 @app.post('/register')
-def register( ):
+async def register(request : Request ):
+    k = await request.json()
+    uname = k['username']
+    password = k['password']
+    email = k['email']
+    phonenum = k['phonenumber']
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-    mydb = myclient["mith"]
+    mydb = myclient["mithranjali"]
     print(mydb)
-    mycol = mydb["register"]
+    mycol = mydb["all_users"]
     # x = mycol.find_one()
     # print(x)
-    mydict = { "username": "John", "email": "hi@gmail.com", "pass":"hi","mobile" : "9999999999" }
+    mydict = { "username": uname, "email": email, "pass":password,"mobile" : phonenum }
     x = mycol.insert_one(mydict)
     print(x)
     pass
 
+
+
 if __name__ == "__main__":
-    #register()
+    
     uvicorn.run(
         app,
         port=5000,

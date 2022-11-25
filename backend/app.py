@@ -53,7 +53,7 @@ async def verify(request : Request):
     otp=randint(0000,9999)
     body = """
     Your otp for email verification is - 
-    """ + otp
+    """ + str(otp)
 
     em = EmailMessage()
     em['From'] = email_sender

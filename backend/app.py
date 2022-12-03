@@ -89,6 +89,27 @@ async def register(request : Request ):
     print(x)
     pass
 
+@app.post('/login')
+async def register(request : Request ):
+    k = await request.json()
+    uname = k['username']
+    password = k['password']
+    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    mydb = myclient["mithranjali"]
+    print(mydb)
+    mycol = mydb["all_users"]
+    # x = mycol.find_one()
+    # print(x)
+    mydict = { "username": uname }
+    x = mycol.find_one(mydict)
+    if x is None:
+        return {"status":200, "result":"Username not found"}
+    elif x["pass"] == password:
+        return {"status":200, "result":"Username and password match"}
+    else:
+        return {"status":200, "result": "Username and password does not match"}
+
+
 
 
 if __name__ == "__main__":

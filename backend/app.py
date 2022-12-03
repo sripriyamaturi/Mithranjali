@@ -74,6 +74,7 @@ async def verify(request : Request):
 @app.post('/register')
 async def register(request : Request ):
     k = await request.json()
+    print(k)
     uname = k['username']
     password = k['password']
     email = k['email']

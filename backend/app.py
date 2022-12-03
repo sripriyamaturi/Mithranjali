@@ -50,7 +50,7 @@ async def verify(request : Request):
     email_receiver = k['email']
 
     subject = "Mithranjali ApnaFood - Email Verification"
-    otp=randint(0000,9999)
+    otp=randint(1000,9999)
     body = """
     Your otp for email verification is - 
     """ + str(otp)

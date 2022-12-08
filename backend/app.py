@@ -23,7 +23,8 @@ from starlette.responses import JSONResponse
 import os
 import pymongo
 from typing import List
-
+import urllib.request
+import urllib.parse
 from fastapi import BackgroundTasks, FastAPI
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from pydantic import BaseModel, EmailStr
@@ -41,8 +42,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.post('/api/sendsms')
+def sendSMS():
+    apikey = 'NTA2NDZhNjgzNDVhNGYzNTZiMzE2YTczNDQ2YzYxNzk='
+    numbers = '919701044584'
+    sender = 'Mithranjali'
+    message = 'hi'
+    data =  urllib.parse.urlencode({'apikey': apikey, 'numbers': numbers,
+        'message' : message, 'sender': sender, 'test' : True})
+    data = data.encode('utf-8')
+    request = urllib.request.Request("https://api.textlocal.in/send/?")
+    f = urllib.request.urlopen(request, data)
+    fr = f.read()
+    return(fr)
+ 
+# resp =  sendSMS('apikey', '918123456789',
+#     'Jims Autos', 'This is your message')
+# print (resp)
 
-@app.post('/verify')
+
+@app.post('/api/verify')
 async def verify(request : Request):
     k = await request.json()
     email_sender = "sripriyamaturi8@gmail.com"
@@ -71,7 +90,7 @@ async def verify(request : Request):
     return {'otp' : otp}
 
 
-@app.post('/register')
+@app.post('/api/register')
 async def register(request : Request ):
     k = await request.json()
     print(k)
@@ -90,7 +109,7 @@ async def register(request : Request ):
     print(x)
     pass
 
-@app.post('/login')
+@app.post('/api/login')
 async def register(request : Request ):
     k = await request.json()
     email = k['email']
@@ -114,7 +133,8 @@ async def register(request : Request ):
 
 
 if __name__ == "__main__":
-    
+    resp =  sendSMS()
+    print (resp)
     uvicorn.run(
         app,
         port=5000,
